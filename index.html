@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naija Whot Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2C3E50;
+            --secondary-color: #E74C3C;
+            --accent-color: #F1C40F;
+            --background-color: #ECF0F1;
+            --text-color: #2C3E50;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .game-status {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-areas:
+                "player2"
+                "center"
+                "player1";
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .player-area {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .player-hand {
+            display: flex;
+            gap: 0.5rem;
+            min-height: 150px;
+        }
+
+        .card {
+            width: 100px;
+            height: 140px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 2px solid #ddd;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        /* Card shape styles */
+        .card[data-shape="circle"]::before {
+            content: "";
+            width: 40px;
+            height: 40px;
+            background: #E74C3C;
+            border-radius: 50%;
+        }
+
+        .card[data-shape="cross"]::before {
+            content: "";
+            width: 40px;
+            height: 40px;
+            background: #3498DB;
+            clip-path: polygon(20% 0%, 80% 0%, 80% 20%, 100% 20%, 100% 80%, 80% 80%, 80% 100%, 20% 100%, 20% 80%, 0% 80%, 0% 20%, 20% 20%);
+        }
+
+        .card[data-shape="rectangle"]::before {
+            content: "";
+            width: 40px;
+            height: 40px;
+            background: #2ECC71;
+            border-radius: 4px;
+        }
+
+        .card[data-shape="star"]::before {
+            content: "";
+            width: 40px;
+            height: 40px;
+            background: #F1C40F;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+
+        .card[data-shape="triangle"]::before {
+            content: "";
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 40px solid #9B59B6;
+        }
+
+        .card[data-shape="whot"]::before {
+            content: "WHOT";
+            font-weight: bold;
+            color: #E74C3C;
+            font-size: 1.2em;
+        }
+
+        .card[data-shape="back"] {
+            background: repeating-linear-gradient(
+                45deg,
+                #2C3E50,
+                #2C3E50 10px,
+                #34495E 10px,
+                #34495E 20px
+            );
+        }
+
+        .card[data-shape="back"]::before {
+            content: "";
+            width: 40px;
+            height: 40px;
+            background: #ECF0F1;
+            border-radius: 50%;
+            opacity: 0.2;
+        }
+
+        .card-number {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .play-pile, .draw-pile {
+            width: 100px;
+            height: 140px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            border: 2px solid #ddd;
+        }
+
+        .draw-pile {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .draw-pile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .market-text {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9em;
+            color: var(--primary-color);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .center-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            min-height: 160px;
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            background: var(--primary-color);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--secondary-color);
+        }
+
+        .game-log {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .shape-selector {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .shape-option {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .shape-option:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-areas:
+                    "player2"
+                    "center"
+                    "player1";
+            }
+
+            .card {
+                width: 70px;
+                height: 98px;
+            }
+
+            .play-pile, .draw-pile {
+                width: 70px;
+                height: 98px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1 class="game-title">Naija Whot</h1>
+            <div class="game-status">Player 1's Turn</div>
+        </header>
+
+        <main class="game-board">
+            <!-- AI Player -->
+            <div class="player-area" style="grid-area: player2;">
+                <div class="player-hand" id="player2-hand">
+                    <!-- AI cards will be added here -->
+                </div>
+            </div>
+
+            <!-- Center Area -->
+            <div class="center-area" style="grid-area: center;">
+                <div class="play-pile" id="play-pile"></div>
+                <div class="draw-pile" id="draw-pile">
+                    <span class="market-text">Market</span>
+                </div>
+            </div>
+
+            <!-- Human Player -->
+            <div class="player-area" style="grid-area: player1;">
+                <div class="player-hand" id="player1-hand">
+                    <!-- Player cards will be added here -->
+                </div>
+            </div>
+        </main>
+
+        <div class="game-log" id="game-log">
+            <div class="log-entry">Game started!</div>
+        </div>
+    </div>
+
+    <!-- Shape Selection Modal -->
+    <div class="modal" id="shape-modal">
+        <div class="modal-content">
+            <h2>Choose a Shape</h2>
+            <div class="shape-selector">
+                <div class="shape-option" data-shape="circle">Circle</div>
+                <div class="shape-option" data-shape="cross">Cross</div>
+                <div class="shape-option" data-shape="rectangle">Rectangle</div>
+                <div class="shape-option" data-shape="star">Star</div>
+                <div class="shape-option" data-shape="triangle">Triangle</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
