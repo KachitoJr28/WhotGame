@@ -178,10 +178,70 @@ function playCard(cardEl, card) {
   }
 }
 
-function handleSpecialCard(card) {
+function handleSpecialCard(card, isCounter = false) {
   const playerName = currentPlayer === 1 ? "Player 1" : "AI";
 
-  if (card.number === 14) { // General Market
+  if ((card.number === 2 || card.number === 5) && !isCounter) { // Pick Two or Pick Three
+    const pickCount = card.number === 2 ? 2 : 3;
+    log(`${playerName} played Pick ${pickCount}!`);
+    showActionMessage(`${playerName} played Pick ${pickCount}!`);
+
+    // Switch to opponent's turn
+    currentPlayer = currentPlayer === 1 ? 2 : 1;
+    updateStatus();
+
+    const opponentHand = currentPlayer === 1 ? player1Hand : player2Hand;
+    const opponentVisible = currentPlayer === 1;
+
+    const canBlock = Array.from(opponentHand.children).some(cardEl => cardEl.card.number === card.number);
+
+    if (canBlock) {
+      log(`${currentPlayer === 1 ? "Player 1" : "AI"} can block Pick ${pickCount}!`);
+      showActionMessage(`${currentPlayer === 1 ? "Player 1" : "AI"} can block Pick ${pickCount}! Play a card or draw from market.`);
+
+      Array.from(opponentHand.children).forEach(cardEl => {
+        if (cardEl.card.number === card.number) {
+          cardEl.onclick = () => {
+            opponentHand.removeChild(cardEl); // Remove the blocking card
+            const visibleBlockingCardEl = createCardElement(cardEl.card, true); // Ensure the blocking card is visible
+            playPile.innerHTML = ""; // Clear the play pile and show only the blocking card
+            playPile.appendChild(visibleBlockingCardEl);
+            animateCardMovement(visibleBlockingCardEl, opponentHand, playPile); // Animate the blocking card being played
+            log(`${currentPlayer === 1 ? "Player 1" : "AI"} blocked Pick ${pickCount}!`);
+            showActionMessage(`${currentPlayer === 1 ? "Player 1" : "AI"} blocked Pick ${pickCount}!`);
+
+            // Switch back to the original player's turn
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateStatus();
+            reEnableCardInteractions(); // Re-enable card interactions for the original player
+          };
+        }
+      });
+    } else {
+      log(`${currentPlayer === 1 ? "Player 1" : "AI"} cannot block Pick ${pickCount}. Must draw cards.`);
+      showActionMessage(`${currentPlayer === 1 ? "Player 1" : "AI"} must draw ${pickCount} cards from the market.`);
+
+      const drawCards = () => {
+        for (let i = 0; i < pickCount; i++) {
+          setTimeout(() => drawCard(opponentHand, opponentVisible), i * 500); // Ensure correct number of cards are drawn
+        }
+        setTimeout(() => {
+          currentPlayer = currentPlayer === 1 ? 2 : 1; // Switch back to the original player's turn
+          updateStatus();
+          reEnableCardInteractions(); // Re-enable card interactions for the original player
+        }, pickCount * 500 + 500); // Adjust delay to account for card draws
+      };
+
+      if (currentPlayer === 2) {
+        drawCards(); // AI automatically draws cards
+      } else {
+        drawPile.onclick = () => {
+          drawCards(); // Human player manually draws cards
+          drawPile.onclick = null; // Remove the draw handler after drawing
+        };
+      }
+    }
+  } else if (card.number === 14) { // General Market
     log(`General Market from ${playerName}!`);
     showActionMessage(`General Market from ${playerName}!`);
     const nextPlayer = currentPlayer === 1 ? player2Hand : player1Hand;
@@ -231,76 +291,6 @@ function handleSpecialCard(card) {
         endTurn(); // Switch to the other player's turn
       }, 1000);
     }
-  } else if (card.number === 2) { // Pick Two
-    log(`Pick Two from ${playerName}!`);
-    showActionMessage(`Pick Two from ${playerName}!`);
-    const nextPlayer = currentPlayer === 1 ? player2Hand : player1Hand;
-    const nextPlayerVisible = currentPlayer === 2;
-
-    // Check if the next player can counter
-    const canCounter = Array.from(nextPlayer.children).some(cardEl => cardEl.card.number === 2);
-    if (canCounter) {
-      const blockerName = currentPlayer === 1 ? "AI" : "Player 1";
-      log(`${blockerName} blocked the pick 2!`);
-      showActionMessage(`${blockerName} blocked the pick 2!`);
-      stackCount = 0; // Reset the stack count since it was blocked
-      stackType = null;
-      endTurn(); // Switch to the next player's turn
-      return;
-    }
-
-    setTimeout(() => {
-      log(`${currentPlayer === 1 ? "AI" : "Player 1"} picks 2 cards from the market.`);
-      showActionMessage(`${currentPlayer === 1 ? "AI" : "Player 1"} picks 2 cards from the market.`);
-      for (let i = 0; i < 2; i++) {
-        setTimeout(() => drawCard(nextPlayer, nextPlayerVisible), i * 1000); // Delay between each card draw
-      }
-      setTimeout(() => {
-        stackCount = 0; // Reset stack count after drawing
-        stackType = null;
-        if (currentPlayer === 2) {
-          setTimeout(aiPlay, 1000); // Ensure AI continues its turn
-        } else {
-          reEnableCardInteractions(); // Re-enable card interactions
-          updateStatus(); // Keep the turn with the current player
-        }
-      }, 3000); // Adjusted delay to account for card draws
-    }, 1000);
-  } else if (card.number === 5) { // Pick Three
-    log(`Pick Three from ${playerName}!`);
-    showActionMessage(`Pick Three from ${playerName}!`);
-    const nextPlayer = currentPlayer === 1 ? player2Hand : player1Hand;
-    const nextPlayerVisible = currentPlayer === 2;
-
-    // Check if the next player can counter
-    const canCounter = Array.from(nextPlayer.children).some(cardEl => cardEl.card.number === 5);
-    if (canCounter) {
-      const blockerName = currentPlayer === 1 ? "AI" : "Player 1";
-      log(`${blockerName} blocked the pick 3!`);
-      showActionMessage(`${blockerName} blocked the pick 3!`);
-      stackCount = 0; // Reset the stack count since it was blocked
-      stackType = null;
-      endTurn(); // Switch to the next player's turn
-      return;
-    }
-
-    setTimeout(() => {
-      log(`${currentPlayer === 1 ? "AI" : "Player 1"} picks 3 cards from the market.`);
-      showActionMessage(`${currentPlayer === 1 ? "AI" : "Player 1"} picks 3 cards from the market.`);
-      for (let i = 0; i < 3; i++) {
-        setTimeout(() => drawCard(nextPlayer, nextPlayerVisible), i * 1000); // Delay between each card draw
-      }
-      setTimeout(() => {
-        stackCount = 0; // Reset stack count after drawing
-        stackType = null;
-        if (currentPlayer === 2) {
-          setTimeout(aiPlay, 1000); // Ensure AI continues its turn
-        } else {
-          reEnableCardInteractions(); // Re-enable card interactions
-          updateStatus(); // Keep the turn with the current player
-        }
-      }, 4000); // Adjusted delay to account for card draws
-    }, 1000);
   } else if (card.number === 8) { // Suspension
     log(`Suspension from ${playerName}!`);
     showActionMessage(`Suspension from ${playerName}!`);

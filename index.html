@@ -202,9 +202,9 @@
 
         .market-text {
             position: absolute;
-            bottom: -25px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             font-size: 0.9em;
             color: var(--primary-color);
             font-weight: 500;
@@ -333,7 +333,9 @@
             <div class="center-area" style="grid-area: center;">
                 <div class="play-pile" id="play-pile"></div>
                 <div class="draw-pile" id="draw-pile">
-                    <span class="market-text">Market</span>
+                    <span class="market-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                        Market
+                    </span>
                 </div>
             </div>
 
